@@ -38,15 +38,20 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             guard let ciimage = CIImage(image: userPickedImage) else {
                 fatalError("Unable to convert to CIImage")
             }
+            
+            detect(image: ciimage)
         }
         imagePicker.dismiss(animated: true, completion: nil)
     }
     
     func detect(image: CIImage) {
+        
+        // Load our InceptionV3 Model
         guard let model = try? VNCoreMLModel(for: Inceptionv3().model) else {
             fatalError("Loading CoreML Model failed")
         }
         
+        // Create a requests that asks the model to classify whatever data we pass it.
         let request = VNCoreMLRequest(model: model) { (request, error) in
             guard let results = request.results as? [VNClassificationObservation] else {
                 fatalError("Model failed to process image")
@@ -54,8 +59,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             print(results)
         }
         
+        // The data we pass is defined using a handler
         let handler = VNImageRequestHandler(ciImage: image)
         
+        // We use that handler to perform the request of classifying the image
         do {
             try handler.perform([request])
         } catch {
